@@ -1,23 +1,16 @@
-JMP START
-xa db "PLEAse enter the number of elements in the sequance: $"
-SORTING_MSG db 10, 13, "Sorting... $"
-SORTED_MSG db 10, 13, "The sorted array is: $"
-SUITABLE_NUMBER_MSG db 10, 13, "Please Enter a suitable number in range [1-25]: $"
-                 
-ENTER_NUMBER_OF_ELEMENTS_MSG db "Please enter the number of elements in the array to be sorted or press 0 to terminate: $"
+JMP START                                                     
 
-ENTER_ELEMENTS_MSG db 10, 13, "Please enter elements of the array to be sorted: $"
-                                                                                  
+SUITABLE_NUMBER_MSG db 10, 13, "Please Enter a suitable number in range [1-25]: $"                 
+ENTER_NUMBER_OF_ELEMENTS_MSG db 10, 13, "Please enter the number of elements in the array to be sorted or press 0 to terminate: $"
+ENTER_ELEMENTS_MSG db 10, 13, "Please enter elements of the array to be sorted: $"                                                                                 
 SROTING_TYPE_MSG db 10, 13, "Enter a for ascending order or d for descending order: $"                                                                                 
+SORTED_MSG db 10, 13, "The sorted array is: $"
 
 
 ARRAY_LENGTH DB ?
 ARRAY_INFO DB 3,?,3  dup(' ')   
 INPUT_HANDLER DB 10, ?, 10 dup(' ')
 ELEMENTS DB 10, ?, 10 dup(' ')   
-
-
-xc db "Programme is terminated  $"
 
 BUFFER db 3 ,?,3  dup(' ')   ;defning a BUFFER to take input in the BUFFER will take no more than 2 chars
 
@@ -34,7 +27,7 @@ START:
 START_WITH_RANGE_INFO:
     MOV AH,2
     MOV dl ,10
-    INT 21H     ;PrINTing a new line
+    INT 21H     ;Printing a new line
     MOV dl,13
     INT 21H
 
@@ -128,7 +121,7 @@ SEVERAL_DIGITS_ENTERED:
     
 GUARD_AGAINEST_WRONG_NUMBERS:
     CMP AL, 0                                ; Checking if the input is Zero if so end the programe
-    JE end
+    JE END
     CMP AL, 25                                 ;if input [0-25] ? continue : display the warning massage
     JA START_WITH_RANGE_INFO
 
@@ -143,32 +136,24 @@ DEC CX
 INC SI
 JMP STORE_USER_INPUT   
 
-;ASK_SORTING_TYPE:
-     
- ;   JMP SORT
-    
-SORT:
-    
 
-    LEA dx, SORTING_MSG                   ;prINTing the warning message
-    MOV AH, 09h
-    INT 21H
-    
+SORT:
     MOV CX, 0
     MOV CL, ARRAY_LENGTH
     MOV SI, 00
     SUB CX, 1
     
-    LEA DX, SROTING_TYPE_MSG
-    MOV AH, 09H
-    INT 21H    
-   MOV AH, 01H
-    INT 21H
-    CMP Al, 'a'
-    JE SORT_ASC
-    CMP Al, 'b'
-    JE SORT_DESC
-      
+    
+    ASK_FOR_SORTING_TYPE:
+        LEA DX, SROTING_TYPE_MSG
+        MOV AH, 09H
+        INT 21H    
+        MOV AH, 01H
+        INT 21H
+        CMP Al, 'a'
+        JE SORT_ASC
+        CMP Al, 'b'
+        JE SORT_DESC          
 
     
     SORT_ASC:
@@ -191,6 +176,7 @@ SORT:
             SUB CX, 1            
             CMP CX, 0
             JNZ SORT_ASC
+     JMP ARRAY_SORTED
             
      SORT_DESC:
         CMP CX, SI          
@@ -198,11 +184,11 @@ SORT:
         MOV AL, ELEMENTS[SI]  
         MOV BL, ELEMENTS[SI + 1]  
         CMP AL, BL           
-        JG SWAP_DESC
+        JS SWAP_DESC
         ADD SI, 1           
         JMP SORT_DESC
 
-        SWAP_ASC:
+        SWAP_DESC:
             MOV ELEMENTS[SI + 1], AL
             MOV ELEMENTS[SI], BL
             ADD SI, 1
@@ -215,10 +201,10 @@ SORT:
     
             
     
-    
-    LEA dx, SORTED_MSG ;Print "Sorting"
-    MOV AH, 09H
-    INT 21H
+    ARRAY_SORTED:
+        LEA dx, SORTED_MSG ;Print "Sorting"
+        MOV AH, 09H
+        INT 21H
     
     MOV SI, 0
     MOV BX, 0           
@@ -287,8 +273,7 @@ SORT:
         
         
     TASK_FINISHED:
-    MOV AH, 00H
-    INT 21H    
+    JMP START_AGAIN    
 
 WRONG_ARRAY_LENGTH:
     MOV AH,2
@@ -305,16 +290,9 @@ WRONG_ARRAY_LENGTH:
     INT 21H
     JMP GET_ARRAY_LENGHT
 
-end:
-    MOV AH , 0
-    MOV  al , 2h
-    INT 10h
-    LEA dx , xc                   ; PrINTing the warning message
-    MOV AH , 09h
-    INT 21H
-    MOV AH, 0                            ; how to end the prog
-    INT 21H                              ;using SOF
 
-
-
-;DefINTion of  variables
+START_AGAIN:
+    JMP START
+    
+END:
+    hlt
