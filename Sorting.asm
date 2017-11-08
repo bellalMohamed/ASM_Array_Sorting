@@ -10,8 +10,8 @@ ARRAY_LENGTH DB ?
 ARRAY_INFO DB 3,?,3  dup(' ')   
 INPUT_HANDLER DB  db 6,?,5 dup ('0')
 ELEMENTS DW 50 dup(?)   
+WORD_LENGTH_EXCEEDED_MSG DB 10, 13, "ERROR: Exceed the size of 'WORD' please re-enter $"
 
-BUFFER db 3 ,?,3  dup(' ')   ;defning a BUFFER to take input in the BUFFER will take no more than 2 chars
 
 flag db 0
 check  db 0       
@@ -116,21 +116,84 @@ ONE_DIGIT_ENTERED:
     SUB AL, 48                                 ;convert from ascci to digit
 
 SEVERAL_DIGITS_ENTERED:
-    cmp INPUT_HANDLER[1],5
-    je  HERE
-    cmp INPUT_HANDLER[1],4
-    je  HERE
-    cmp INPUT_HANDLER[1],3
-    je  HERE
-    cmp INPUT_HANDLER[1],2
-    je  HERE
-    cmp INPUT_HANDLER[1],1
-    je  HERE
+    PUSH CX
+    MOV CX, 0
     
-    HERE:
-        PUSH CX
+    cmp INPUT_HANDLER[1],5
+    je  FIVE_DIGITS
+    cmp INPUT_HANDLER[1],4
+    je  FOUR_DIGITS
+    cmp INPUT_HANDLER[1],3
+    je  THREE_DIGITS
+    cmp INPUT_HANDLER[1],2
+    je  TWO_DIGITS
+    cmp INPUT_HANDLER[1],1
+    je  ONE_DIGIT
+    
+
+
+;------------------------
+    FIVE_DIGITS:
+        mov ah,0
+        mov al,INPUT_HANDLER[2]
+        cmp al,36h
+        ja  WORD_LENGTH_EXCEEDED
+        sub ax,30h
+        mov bx,10000
+        mov dx,0
+        mul bx
+        add cx,ax
+
+        mov ah,0
+        mov al,INPUT_HANDLER[3]
+        cmp al,35h
+        ja  WORD_LENGTH_EXCEEDED
+        sub ax,30h
+        mov bx,1000
+        mov dx,0
+        mul bx
+        add cx,ax
         
-        MOV CX, 0
+        mov ah,0
+        mov al,INPUT_HANDLER[4]
+        cmp al,35h
+        ja  WORD_LENGTH_EXCEEDED
+        sub ax,30h
+        mov bx,100
+        mov dx,0
+        mul bx
+        add cx,ax
+
+        mov ah,0
+        mov al,INPUT_HANDLER[5]
+        cmp al,33h
+        ja  WORD_LENGTH_EXCEEDED
+        sub ax,30h
+        mov bx,10
+        mov dx,0
+        mul bx
+        add cx,ax
+
+        mov ah,0
+        mov al,INPUT_HANDLER[6]
+        cmp al,35h
+        ja  WORD_LENGTH_EXCEEDED
+        sub ax,30h
+        mov bx,1
+        mov dx,0
+        mul bx
+        add cx,ax
+
+        jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
+        
+        WORD_LENGTH_EXCEEDED:
+            LEA DX, WORD_LENGTH_EXCEEDED_MSG
+            MOV AH, 09H
+            INT 21H
+            JMP STORE_USER_INPUT
+            
+;.........................................................................................................................................
+FOUR_DIGITS:   
         mov ah,0
         mov al,INPUT_HANDLER[2]
         sub ax,30h
@@ -162,10 +225,75 @@ SEVERAL_DIGITS_ENTERED:
         mov dx,0
         mul bx
         add cx,ax
+
+        jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
+;.........................................................................................................................................
+THREE_DIGITS:
+        mov ah,0
+        mov al,INPUT_HANDLER[2]
+        sub ax,30h
+        mov bx,100
+        mov dx,0
+        mul bx
+        add cx,ax
+
+        mov ah,0
+        mov al,INPUT_HANDLER[3]
+        sub ax,30h
+        mov bx,10
+        mov dx,0
+        mul bx
+        add cx,ax
+        
+        mov ah,0
+        mov al,INPUT_HANDLER[4]
+        sub ax,30h
+        mov bx,1
+        mov dx,0
+        mul bx
+        add cx,ax
+
+        jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
+;.........................................................................................................................................
+TWO_DIGITS:    
+        mov ah,0
+        mov al,INPUT_HANDLER[2]
+        sub ax,30h
+        mov bx,10
+        mov dx,0
+        mul bx
+        add cx,ax
+
+        mov ah,0
+        mov al,INPUT_HANDLER[3]
+        sub ax,30h
+        mov bx,1
+        mov dx,0
+        mul bx
+        add cx,ax
+        jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
+;.........................................................................................................................................
+ONE_DIGIT:    
+        mov ah,0
+        mov al,INPUT_HANDLER[2]
+        sub ax,30h
+        mov bx,1
+        mov dx,0
+        mul bx
+        add cx,ax
+
+        jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
+
+
+
+
+
+
+;-------------------------
     
     
 STORE_NUMBER_TO_ELEMENTS_ARRAY:
-    MOV ELEMENTS[SI] , CX
+    MOV ELEMENTS[SI], CX
     MOV BX, 0      
     MOV DX, 0
 	MOV DX, offset ELEMENTS[SI]
@@ -179,8 +307,8 @@ JMP STORE_USER_INPUT
 SORT:
     MOV CX, 0
     MOV CL, ARRAY_LENGTH
+    DEC CX
     MOV SI, 00
-    SUB CX, 1
     
     
     ASK_FOR_SORTING_TYPE:
@@ -196,26 +324,33 @@ SORT:
 
     
     SORT_ASC:
-        CMP CX, SI          
-        JZ CYCLE_ASC
+        MOV DX, CX 
+        
+        COMPARE:
+        CMP DX, 0
+        JE CYCLE_ASC
+        
         MOV AX, ELEMENTS[SI]  
         MOV BX, ELEMENTS[SI + 2]  
         CMP AX, BX           
-        JG SWAP_ASC
-        ADD SI, 1           
-        JMP SORT_ASC
+        JG SWAP_ASC        
+        ADD SI, 2
+        DEC DX           
+        JMP COMPARE
 
         SWAP_ASC:
             MOV ELEMENTS[SI + 2], AX
             MOV ELEMENTS[SI], BX
             ADD SI, 2
-            JMP SORT_ASC
+            DEC DX
+            JMP COMPARE
         CYCLE_ASC:                   
             MOV SI, 0            
             SUB CX, 1            
             CMP CX, 0
             JNZ SORT_ASC
      JMP ARRAY_SORTED
+     
             
      SORT_DESC:
         CMP CX, SI          
@@ -274,7 +409,7 @@ SORT:
         MOV AX, ELEMENTS[SI]
             
         PRINIT_MULTI_DIGIT:
-            PUSH CX                                   ;save the value of the main loop by pushing it in the stack & clear the counter
+            PUSH CX                                   ;STORE_NUMBER_TO_ELEMENTS_ARRAY the value of the main loop by pushing it in the stack & clear the counter
             MOV BX, 10
             MOV CX,0
         
