@@ -1,10 +1,10 @@
 JMP START                                                     
 
-SUITABLE_NUMBER_MSG db 10, 13, "Please Enter a suitable number in range [1-25]: $"                 
-ENTER_NUMBER_OF_ELEMENTS_MSG db 10, 13, "Please enter the number of elements in the array to be sorted or press 0 to terminate: $"
-ENTER_ELEMENTS_MSG db 10, 13, "Please enter elements of the array to be sorted: $"                                                                                 
-SROTING_TYPE_MSG db 10, 13, "Enter a for ascending order or d for descending order: $"                                                                                 
-SORTED_MSG db 10, 13, "The sorted array is: $"
+ENTER_NUMBER_OF_ELEMENTS_MSG DB "Please enter the number of elements in the array to be sorted or press 0 to terminate: $"
+SUITABLE_NUMBER_MSG DB "Please Enter a suitable number in range [1-25]: $"                 
+ENTER_ELEMENTS_MSG DB 10, 13, "Please enter elements of the array to be sorted: $"                                                                                 
+SROTING_TYPE_MSG DB 10, 13, "Enter a for ascending order or d for descending order: $"                                                                                 
+SORTED_MSG DB 10, 13, "The sorted array is: $"
 WORD_LENGTH_EXCEEDED_MSG DB 10, 13, "ERROR: Exceed the size of 'WORD' please re-enter $"
 
 
@@ -83,13 +83,8 @@ ACCEPT_ARRAY_ELEMENTS:
     ;Counter Acts as array index
     MOV SI, 0
 ;Start Storing the entered elements   
-STORE_USER_INPUT:
-    
-    mov ah,2
-    mov dl ,10
-    int 21h                                   ;Printing a new line
-    mov dl,13
-    int 21h
+STORE_USER_INPUT:   
+    CALL NEW_LINE
     
     ;Check if all elements are stored in the array
     CMP CX, 0
@@ -106,200 +101,201 @@ STORE_USER_INPUT:
     JA SEVERAL_DIGITS_ENTERED
     JE ONE_DIGIT_ENTERED
 
-ONE_DIGIT_ENTERED:
-    MOV AL, INPUT_HANDLER[2]                       ;if it is only one digit
-    SUB AL, 48                                 ;convert from ascci to digit
-
-SEVERAL_DIGITS_ENTERED:
-    PUSH CX
-    MOV CX, 0
+    ONE_DIGIT_ENTERED:
+        MOV AL, INPUT_HANDLER[2]                       ;if it is only one digit
+        SUB AL, 48                                 ;convert from ascci to digit
     
-    CMP INPUT_HANDLER[1], 5
-    JE  FIVE_DIGITS
-    CMP INPUT_HANDLER[1], 4
-    JE  FOUR_DIGITS
-    CMP INPUT_HANDLER[1], 3
-    JE  THREE_DIGITS
-    CMP INPUT_HANDLER[1], 2
-    JE  TWO_DIGITS
-    CMP INPUT_HANDLER[1], 1
-    JE  ONE_DIGIT
+    SEVERAL_DIGITS_ENTERED:
+        PUSH CX
+        MOV CX, 0
+        
+        ;Check the length of entered digit
+        CMP INPUT_HANDLER[1], 5
+        JE  FIVE_DIGITS
+        CMP INPUT_HANDLER[1], 4
+        JE  FOUR_DIGITS
+        CMP INPUT_HANDLER[1], 3
+        JE  THREE_DIGITS
+        CMP INPUT_HANDLER[1], 2
+        JE  TWO_DIGITS
+        CMP INPUT_HANDLER[1], 1
+        JE  ONE_DIGIT
+        
     
-
-    FIVE_DIGITS:
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[2]
-        CMP AL, 36h
-        JA  WORD_LENGTH_EXCEEDED
-        sub AX, 30h
-        MOV BX, 10000
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[3]
-        CMP AL, 35h
-        JA  WORD_LENGTH_EXCEEDED
-        sub AX, 30h
-        MOV BX, 1000
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-        
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[4]
-        CMP AL, 35h
-        JA  WORD_LENGTH_EXCEEDED
-        sub AX, 30h
-        MOV BX, 100
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[5]
-        CMP AL, 33h
-        JA  WORD_LENGTH_EXCEEDED
-        sub AX, 30h
-        MOV BX, 10
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[6]
-        CMP AL, 35h
-        JA  WORD_LENGTH_EXCEEDED
-        sub AX, 30h
-        MOV BX, 1
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
-        
-        WORD_LENGTH_EXCEEDED:
-            LEA DX,  WORD_LENGTH_EXCEEDED_MSG
-            MOV AH,  09H
-            INT 21H
-            POP CX
-            JMP STORE_USER_INPUT
+        FIVE_DIGITS:
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[2]
+            CMP AL, 36h
+            JA  WORD_LENGTH_EXCEEDED
+            SUB AX, 30h
+            MOV BX, 10000
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[3]
+            CMP AL, 35h
+            JA  WORD_LENGTH_EXCEEDED
+            SUB AX, 30h
+            MOV BX, 1000
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
             
-;.........................................................................................................................................
-FOUR_DIGITS:   
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[2]
-        sub AX, 30h
-        MOV BX, 1000
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[3]
-        sub AX, 30h
-        MOV BX, 100
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-        
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[4]
-        sub AX, 30h
-        MOV BX, 10
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[5]
-        sub AX, 30h
-        MOV BX, 1
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
-;.........................................................................................................................................
-THREE_DIGITS:
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[2]
-        sub AX, 30h
-        MOV BX, 100
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[3]
-        sub AX, 30h
-        MOV BX, 10
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-        
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[4]
-        sub AX, 30h
-        MOV BX, 1
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
-;.........................................................................................................................................
-TWO_DIGITS:    
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[2]
-        sub AX, 30h
-        MOV BX, 10
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[3]
-        sub AX, 30h
-        MOV BX, 1
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-        jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
-
-
-ONE_DIGIT:    
-        MOV AH, 0
-        MOV AL, INPUT_HANDLER[2]
-        sub AX, 30h
-        MOV BX, 1
-        MOV DX, 0
-        MUL BX
-        ADD CX, AX
-
-        jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
-
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[4]
+            CMP AL, 35h
+            JA  WORD_LENGTH_EXCEEDED
+            SUB AX, 30h
+            MOV BX, 100
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[5]
+            CMP AL, 33h
+            JA  WORD_LENGTH_EXCEEDED
+            SUB AX, 30h
+            MOV BX, 10
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[6]
+            CMP AL, 35h
+            JA  WORD_LENGTH_EXCEEDED
+            SUB AX, 30h
+            MOV BX, 1
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            JMP STORE_NUMBER_TO_ELEMENTS_ARRAY
+            
+            WORD_LENGTH_EXCEEDED:
+                LEA DX,  WORD_LENGTH_EXCEEDED_MSG
+                MOV AH,  09H
+                INT 21H
+                POP CX
+                JMP STORE_USER_INPUT
+                
+    
+        FOUR_DIGITS:   
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[2]
+            SUB AX, 30h
+            MOV BX, 1000
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[3]
+            SUB AX, 30h
+            MOV BX, 100
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+            
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[4]
+            SUB AX, 30h
+            MOV BX, 10
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[5]
+            SUB AX, 30h
+            MOV BX, 1
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            JMP STORE_NUMBER_TO_ELEMENTS_ARRAY
+    
+        THREE_DIGITS:
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[2]
+            SUB AX, 30h
+            MOV BX, 100
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[3]
+            SUB AX, 30h
+            MOV BX, 10
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+            
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[4]
+            SUB AX, 30h
+            MOV BX, 1
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            JMP STORE_NUMBER_TO_ELEMENTS_ARRAY
+    
+        TWO_DIGITS:    
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[2]
+            SUB AX, 30h
+            MOV BX, 10
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[3]
+            SUB AX, 30h
+            MOV BX, 1
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+            JMP STORE_NUMBER_TO_ELEMENTS_ARRAY
     
     
-STORE_NUMBER_TO_ELEMENTS_ARRAY:
-    MOV ELEMENTS[SI], CX
-    MOV BX, 0      
-    MOV DX, 0
-	MOV DX, offset ELEMENTS[SI]
-	
-POP CX
-DEC CX
-ADD SI, 2
-JMP STORE_USER_INPUT   
+        ONE_DIGIT:    
+            MOV AH, 0
+            MOV AL, INPUT_HANDLER[2]
+            SUB AX, 30h
+            MOV BX, 1
+            MOV DX, 0
+            MUL BX
+            ADD CX, AX
+    
+            JMP STORE_NUMBER_TO_ELEMENTS_ARRAY
+    
+        
+    ; Storing the number entered by user to the ELEMENTS array    
+    STORE_NUMBER_TO_ELEMENTS_ARRAY:
+        MOV ELEMENTS[SI], CX
+        MOV BX, 0      
+        MOV DX, 0
+    	
+        POP CX
+        DEC CX
+        ADD SI, 2
+        JMP STORE_USER_INPUT   
 
 
+;START SORTING
 SORT:
     MOV CX, 0
     MOV CL, ARRAY_LENGTH
     DEC CX
     MOV SI, 00
     
-    
+    ; Ask USER for the type of sorting ASC/DESC   
     ASK_FOR_SORTING_TYPE:
         LEA DX, SROTING_TYPE_MSG
         MOV AH, 09H
@@ -311,7 +307,7 @@ SORT:
         CMP Al, 'd'
         JE SORT_DESC          
 
-    
+    ;Bubble sorting ASC/DESC algirthms
     SORT_ASC:
         MOV DX, CX 
         
@@ -376,11 +372,11 @@ SORT:
         MOV AH, 09H
         INT 21H
     
-    MOV SI, 0
-    MOV BX, 0           
-    MOV DX, 0
-    MOV DX, 0
+        MOV SI, 0
+        MOV BX, 0           
+        MOV DX, 0
     
+    ; Start printing the sorted array
     PRINT_SORTED_ARRAY:
         CMP ARRAY_LENGTH, 0 
         JE TASK_FINISHED
@@ -388,7 +384,7 @@ SORT:
         MOV AX, ELEMENTS[SI]
         
         CMP AX, 9
-        JA PRINIT_MULTI_DIGIT      ;Checking if the number is 1-digit or multi-digit
+        JA PRINIT_MULTI_DIGIT 
         JMP PRINT_ONE_DIGIT
         
        
@@ -404,36 +400,34 @@ SORT:
         MOV AX, ELEMENTS[SI]
             
         PRINIT_MULTI_DIGIT:
-            PUSH CX                                   ;STORE_NUMBER_TO_ELEMENTS_ARRAY the value of the main loop by pushing it in the stack & clear the counter
+            PUSH CX
             MOV BX, 10
             MOV CX,0
         
             NEXT:
             MOV DX, 0
-            DIV BX                                      ; ax = ax / bx >> dx = reminder
-            ADD DL,48                                   ; converting the firist digit to a char again
+            DIV BX                          ; AX = AX / BX --> Reminder is stored in DX 
+            ADD DL,48             
         
-            PUSH DX                                   ; pushing digits in the stack to print them later
-            INC CX                                    ;Increamenting the counter to count the number of digits to know when to stop when popinng
-            CMP AX, 0                                  ; if ax=0 means the all digits are stored
+            PUSH DX                         ;pushing the reminder digits to the stack to use in the next digit printing
+            INC CX                          
+            CMP AX, 0                       ; Start printing the element
             JE PRINT_SEPARATED_DIGIT
             JMP NEXT
         
         PRINT_SEPARATED_DIGIT:
             POP DX
-            MOV AH, 02H                                ;Poping cx-digits and Printing it using int21h/2h
+            MOV AH, 02H                    ;Pop digits from CX and Print it
             INT 21H
-            LOOP PRINT_SEPARATED_DIGIT     ; loop works while (cx--)
-            POP CX                                    ; all digits are printed now cx holds the main counter of the series
-            JMP comma
+            LOOP PRINT_SEPARATED_DIGIT     
+            POP CX                         ;POP the old value of CX which is the array loop counter
+            JMP PRINT_COMMA
         
-        comma:                                    ;printing ',' between digits as 44 is the ascci for the ','
-            CMP CX, 1
-            je PRINT_SORTED_ARRAY
+        ; Prinit ',' between DIGITS 
+        PRINT_COMMA:                                       
             MOV Dl, 44
             INT 21H
-
-            
+    
         HANDLE_NEXT_ELEMENT:
             DEC ARRAY_LENGTH
             ADD SI, 2
@@ -441,26 +435,31 @@ SORT:
         
                 
     TASK_FINISHED:
-    JMP START_AGAIN    
+        CALL NEW_LINE
+        JMP START_AGAIN    
 
 WRONG_ARRAY_LENGTH:
-    MOV AH, 2
-    MOV DL, 10
-    INT 21H                                   ;PrINTing a new line
-    MOV DL, 13
-    INT 21H
-
-    MOV AH , 00H
-    MOV AL , 02H
+    MOV AH, 0
+    MOV AL, 02H
     INT 10H
     LEA DX, SUITABLE_NUMBER_MSG                   ;prINTing the warning message
     MOV AH , 09h
     INT 21H
     JMP GET_ARRAY_LENGHT
 
+PROC NEW_LINE
+    MOV AH, 2
+    MOV DL, 10
+    INT 21H                                   
+    MOV DL, 13
+    INT 21H
+
+ret 
+ENDP NEW_LINE
+
 
 START_AGAIN:
     JMP START
     
 END:
-    hlt
+    HLT
