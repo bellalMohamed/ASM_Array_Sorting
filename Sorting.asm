@@ -6,11 +6,10 @@ ENTER_ELEMENTS_MSG db 10, 13, "Please enter elements of the array to be sorted: 
 SROTING_TYPE_MSG db 10, 13, "Enter a for ascending order or d for descending order: $"                                                                                 
 SORTED_MSG db 10, 13, "The sorted array is: $"
 
-
 ARRAY_LENGTH DB ?
 ARRAY_INFO DB 3,?,3  dup(' ')   
 INPUT_HANDLER DB  db 6,?,5 dup ('0')
-ELEMENTS DB 10, ?, 10 dup(' ')   
+ELEMENTS DW 50 dup(?)   
 
 BUFFER db 3 ,?,3  dup(' ')   ;defning a BUFFER to take input in the BUFFER will take no more than 2 chars
 
@@ -98,13 +97,8 @@ STORE_USER_INPUT:
     MOV AH, 0AH
     INT 21H
     
-    
-    MOV BL, INPUT_HANDLER[1]                         ; storing the size of the BUFFER in bl
-    MOV BH, 0
-    
-    MOV SI, 0
-    MOV SI, BX
-      
+    ;Counter for array e
+    MOV SI, 1
     
     MOV BL, INPUT_HANDLER[1]
     CMP Bl, 1                                 ;checking if it is one digit or not
@@ -128,43 +122,49 @@ SEVERAL_DIGITS_ENTERED:
     je  HERE
     
     HERE:
-    MOV AL, 10
-    MOV AH, INPUT_HANDLER[2]                          ;storing the first digit in ah
-    sub AH, 48
-    mul AH
-    DEC SI                                    ;Changing from ascii to digit
-    
-    MOV BL, INPUT_HANDLER[3]                         ;Getting the enterd number in ASCII number form
-    sub BL, 48                                 ;Changing from ascii to digit
-    ADD AL, BL
-    DEC SI
-    
+        PUSH CX
+        
+        MOV CX, 0
+        mov ah,0
+        mov al,INPUT_HANDLER[2]
+        sub ax,30h
+        mov bx,1000
+        mov dx,0
+        mul bx
+        add cx,ax
 
-    MOV BL, INPUT_HANDLER[4]                         ;Getting the enterd number in ASCII number form
-    sub BL, 48                                 ;Changing from ascii to digit
-    ADD AL, BL
-    DEC SI
-    
-    MOV BX, 0
-    MOV BL, INPUT_HANDLER[5]                         ;Getting the enterd number in ASCII number form
-    sub BL, 48                                 ;Changing from ascii to digit
-    ADD AL, BL
-    
+        mov ah,0
+        mov al,INPUT_HANDLER[3]
+        sub ax,30h
+        mov bx,100
+        mov dx,0
+        mul bx
+        add cx,ax
+        
+        mov ah,0
+        mov al,INPUT_HANDLER[4]
+        sub ax,30h
+        mov bx,10
+        mov dx,0
+        mul bx
+        add cx,ax
 
-    MOV BX, 0
-    MOV BL, INPUT_HANDLER[5]                         ;Getting the enterd number in ASCII number form
-    sub BL, 48                                 ;Changing from ascii to digit
-    ADD AL, BL  
-    
+        mov ah,0
+        mov al,INPUT_HANDLER[5]
+        sub ax,30h
+        mov bx,1
+        mov dx,0
+        mul bx
+        add cx,ax
     
     
 STORE_NUMBER_TO_ELEMENTS_ARRAY:
-    MOV ELEMENTS[SI] , AL
+    MOV ELEMENTS[SI] , CX
     MOV BX, 0      
     MOV DX, 0
-	MOV dl, offset ELEMENTS[SI]
+	MOV DX, offset ELEMENTS[SI]
 	
-
+POP CX
 DEC CX
 INC SI
 JMP STORE_USER_INPUT   
@@ -192,17 +192,17 @@ SORT:
     SORT_ASC:
         CMP CX, SI          
         JZ CYCLE_ASC
-        MOV AL, ELEMENTS[SI]  
-        MOV BL, ELEMENTS[SI + 1]  
-        CMP AL, BL           
+        MOV AX, ELEMENTS[SI]  
+        MOV BX, ELEMENTS[SI + 2]  
+        CMP AX, BX           
         JG SWAP_ASC
         ADD SI, 1           
         JMP SORT_ASC
 
         SWAP_ASC:
-            MOV ELEMENTS[SI + 1], AL
-            MOV ELEMENTS[SI], BL
-            ADD SI, 1
+            MOV ELEMENTS[SI + 2], AX
+            MOV ELEMENTS[SI], BX
+            ADD SI, 2
             JMP SORT_ASC
         CYCLE_ASC:                   
             MOV SI, 0            
@@ -214,16 +214,16 @@ SORT:
      SORT_DESC:
         CMP CX, SI          
         JZ CYCLE_DESC
-        MOV AL, ELEMENTS[SI]  
-        MOV BL, ELEMENTS[SI + 1]  
-        CMP AL, BL           
+        MOV AX, ELEMENTS[SI]  
+        MOV BX, ELEMENTS[SI + 1]  
+        CMP AX, BX           
         JS SWAP_DESC
         ADD SI, 1           
         JMP SORT_DESC
 
         SWAP_DESC:
-            MOV ELEMENTS[SI + 1], AL
-            MOV ELEMENTS[SI], BL
+            MOV ELEMENTS[SI + 1], AX
+            MOV ELEMENTS[SI], BX
             ADD SI, 1
             JMP SORT_DESC
         CYCLE_DESC:                   
@@ -249,15 +249,15 @@ SORT:
         CMP SI, DX 
         JE TASK_FINISHED
         MOV AX, 0
-        MOV AL, ELEMENTS[SI]
+        MOV AX, ELEMENTS[SI]
         
-        CMP AL, 9
+        CMP AX, 9
         JA PRINIT_MULTI_DIGIT      ;Checking if the number is 1-digit or multi-digit
         JMP PRINT_ONE_DIGIT
         
        
         PRINT_ONE_DIGIT:      
-            MOV DL, ELEMENTS[SI]
+            MOV DX, ELEMENTS[SI]
             ADD DX, 48
             MOV AH, 02H
             INT 21H
@@ -265,7 +265,7 @@ SORT:
             INT 21H
             JMP HANDLE_NEXT_ELEMENT
         
-        MOV AL, ELEMENTS[SI]
+        MOV AX, ELEMENTS[SI]
             
         PRINIT_MULTI_DIGIT:
             PUSH CX                                   ;save the value of the main loop by pushing it in the stack & clear the counter
