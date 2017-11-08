@@ -190,6 +190,7 @@ SEVERAL_DIGITS_ENTERED:
             LEA DX, WORD_LENGTH_EXCEEDED_MSG
             MOV AH, 09H
             INT 21H
+            POP CX
             JMP STORE_USER_INPUT
             
 ;.........................................................................................................................................
@@ -272,7 +273,8 @@ TWO_DIGITS:
         mul bx
         add cx,ax
         jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
-;.........................................................................................................................................
+
+
 ONE_DIGIT:    
         mov ah,0
         mov al,INPUT_HANDLER[2]
@@ -284,12 +286,6 @@ ONE_DIGIT:
 
         jmp STORE_NUMBER_TO_ELEMENTS_ARRAY
 
-
-
-
-
-
-;-------------------------
     
     
 STORE_NUMBER_TO_ELEMENTS_ARRAY:
@@ -319,14 +315,14 @@ SORT:
         INT 21H
         CMP Al, 'a'
         JE SORT_ASC
-        CMP Al, 'b'
+        CMP Al, 'd'
         JE SORT_DESC          
 
     
     SORT_ASC:
         MOV DX, CX 
         
-        COMPARE:
+        COMPARE_ASC:
         CMP DX, 0
         JE CYCLE_ASC
         
@@ -336,14 +332,14 @@ SORT:
         JG SWAP_ASC        
         ADD SI, 2
         DEC DX           
-        JMP COMPARE
+        JMP COMPARE_ASC
 
         SWAP_ASC:
             MOV ELEMENTS[SI + 2], AX
             MOV ELEMENTS[SI], BX
             ADD SI, 2
             DEC DX
-            JMP COMPARE
+            JMP COMPARE_ASC
         CYCLE_ASC:                   
             MOV SI, 0            
             SUB CX, 1            
@@ -353,30 +349,37 @@ SORT:
      
             
      SORT_DESC:
-        CMP CX, SI          
-        JZ CYCLE_DESC
+        MOV DX, CX 
+        
+        COMPARE_DESC:
+        CMP DX, 0
+        JE CYCLE_DESC
+        
         MOV AX, ELEMENTS[SI]  
-        MOV BX, ELEMENTS[SI + 1]  
+        MOV BX, ELEMENTS[SI + 2]  
         CMP AX, BX           
-        JS SWAP_DESC
-        ADD SI, 1           
-        JMP SORT_DESC
+        JS SWAP_DESC        
+        ADD SI, 2
+        DEC DX           
+        JMP COMPARE_DESC
 
         SWAP_DESC:
-            MOV ELEMENTS[SI + 1], AX
+            MOV ELEMENTS[SI + 2], AX
             MOV ELEMENTS[SI], BX
-            ADD SI, 1
-            JMP SORT_DESC
+            ADD SI, 2
+            DEC DX
+            JMP COMPARE_DESC
         CYCLE_DESC:                   
             MOV SI, 0            
             SUB CX, 1            
             CMP CX, 0
             JNZ SORT_DESC
+     JMP ARRAY_SORTED
     
             
     
     ARRAY_SORTED:
-        LEA dx, SORTED_MSG ;Print "Sorting"
+        LEA dx, SORTED_MSG
         MOV AH, 09H
         INT 21H
     
@@ -386,7 +389,6 @@ SORT:
     MOV DX, 0
     
     PRINT_SORTED_ARRAY:
-        ;MOV DL, ARRAY_LENGTH
         CMP ARRAY_LENGTH, 0 
         JE TASK_FINISHED
         MOV AX, 0
