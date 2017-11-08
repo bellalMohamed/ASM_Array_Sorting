@@ -84,10 +84,16 @@ ACCEPT_ARRAY_ELEMENTS:
     MOV AH , 09h     
     INT 21H
     
-    JMP STORE_USER_INPUT
+    MOV SI, 0
 
 
 STORE_USER_INPUT:
+    mov ah,2
+    mov dl ,10
+    int 21h                                   ;Printing a new line
+    mov dl,13
+    int 21h
+    
     ;Check if the elements are stored 
     CMP CX, 0
     JE SORT
@@ -98,7 +104,7 @@ STORE_USER_INPUT:
     INT 21H
     
     ;Counter for array e
-    MOV SI, 1
+    
     
     MOV BL, INPUT_HANDLER[1]
     CMP Bl, 1                                 ;checking if it is one digit or not
@@ -166,7 +172,7 @@ STORE_NUMBER_TO_ELEMENTS_ARRAY:
 	
 POP CX
 DEC CX
-INC SI
+ADD SI, 2
 JMP STORE_USER_INPUT   
 
 
@@ -242,11 +248,11 @@ SORT:
     MOV SI, 0
     MOV BX, 0           
     MOV DX, 0
-    MOV BL, ARRAY_LENGTH
+    MOV DX, 0
     
     PRINT_SORTED_ARRAY:
-        MOV DL, ARRAY_LENGTH
-        CMP SI, DX 
+        ;MOV DL, ARRAY_LENGTH
+        CMP ARRAY_LENGTH, 0 
         JE TASK_FINISHED
         MOV AX, 0
         MOV AX, ELEMENTS[SI]
@@ -300,7 +306,8 @@ SORT:
             
             
         HANDLE_NEXT_ELEMENT:
-            INC SI
+            DEC ARRAY_LENGTH
+            ADD SI, 2
             JMP PRINT_SORTED_ARRAY
         
                 
