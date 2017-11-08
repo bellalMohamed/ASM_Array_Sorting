@@ -9,7 +9,7 @@ SORTED_MSG db 10, 13, "The sorted array is: $"
 
 ARRAY_LENGTH DB ?
 ARRAY_INFO DB 3,?,3  dup(' ')   
-INPUT_HANDLER DB 10, ?, 10 dup(' ')
+INPUT_HANDLER DB  db 6,?,5 dup ('0')
 ELEMENTS DB 10, ?, 10 dup(' ')   
 
 BUFFER db 3 ,?,3  dup(' ')   ;defning a BUFFER to take input in the BUFFER will take no more than 2 chars
@@ -98,8 +98,15 @@ STORE_USER_INPUT:
     MOV AH, 0AH
     INT 21H
     
+    
     MOV BL, INPUT_HANDLER[1]                         ; storing the size of the BUFFER in bl
-
+    MOV BH, 0
+    
+    MOV SI, 0
+    MOV SI, BX
+      
+    
+    MOV BL, INPUT_HANDLER[1]
     CMP Bl, 1                                 ;checking if it is one digit or not
     JA SEVERAL_DIGITS_ENTERED
     JE ONE_DIGIT_ENTERED
@@ -107,24 +114,50 @@ STORE_USER_INPUT:
 ONE_DIGIT_ENTERED:
     MOV AL, INPUT_HANDLER[2]                       ;if it is only one digit
     SUB AL, 48                                 ;convert from ascci to digit
-    JMP GUARD_AGAINEST_WRONG_NUMBERS
 
 SEVERAL_DIGITS_ENTERED:
+    cmp INPUT_HANDLER[1],5
+    je  HERE
+    cmp INPUT_HANDLER[1],4
+    je  HERE
+    cmp INPUT_HANDLER[1],3
+    je  HERE
+    cmp INPUT_HANDLER[1],2
+    je  HERE
+    cmp INPUT_HANDLER[1],1
+    je  HERE
+    
+    HERE:
     MOV AL, 10
     MOV AH, INPUT_HANDLER[2]                          ;storing the first digit in ah
     sub AH, 48
-    mul AH                                    ;Changing from ascii to digit
+    mul AH
+    DEC SI                                    ;Changing from ascii to digit
     
     MOV BL, INPUT_HANDLER[3]                         ;Getting the enterd number in ASCII number form
     sub BL, 48                                 ;Changing from ascii to digit
-    ADD AL, BL 
+    ADD AL, BL
+    DEC SI
     
-GUARD_AGAINEST_WRONG_NUMBERS:
-    CMP AL, 0                                ; Checking if the input is Zero if so end the programe
-    JE END
-    CMP AL, 25                                 ;if input [0-25] ? continue : display the warning massage
-    JA START_WITH_RANGE_INFO
 
+    MOV BL, INPUT_HANDLER[4]                         ;Getting the enterd number in ASCII number form
+    sub BL, 48                                 ;Changing from ascii to digit
+    ADD AL, BL
+    DEC SI
+    
+    MOV BX, 0
+    MOV BL, INPUT_HANDLER[5]                         ;Getting the enterd number in ASCII number form
+    sub BL, 48                                 ;Changing from ascii to digit
+    ADD AL, BL
+    
+
+    MOV BX, 0
+    MOV BL, INPUT_HANDLER[5]                         ;Getting the enterd number in ASCII number form
+    sub BL, 48                                 ;Changing from ascii to digit
+    ADD AL, BL  
+    
+    
+    
 STORE_NUMBER_TO_ELEMENTS_ARRAY:
     MOV ELEMENTS[SI] , AL
     MOV BX, 0      
@@ -270,22 +303,21 @@ SORT:
             INC SI
             JMP PRINT_SORTED_ARRAY
         
-        
-        
+                
     TASK_FINISHED:
     JMP START_AGAIN    
 
 WRONG_ARRAY_LENGTH:
-    MOV AH,2
-    MOV dl ,10
+    MOV AH, 2
+    MOV DL, 10
     INT 21H                                   ;PrINTing a new line
-    MOV dl,13
+    MOV DL, 13
     INT 21H
 
-    MOV AH , 0
-    MOV  al , 2h
-    INT 10h
-    LEA dx , SUITABLE_NUMBER_MSG                   ;prINTing the warning message
+    MOV AH , 00H
+    MOV AL , 02H
+    INT 10H
+    LEA DX, SUITABLE_NUMBER_MSG                   ;prINTing the warning message
     MOV AH , 09h
     INT 21H
     JMP GET_ARRAY_LENGHT
